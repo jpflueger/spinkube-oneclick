@@ -13,3 +13,7 @@ update-crds:
 update-templates:
 	curl -sL https://github.com/spinkube/spin-operator/releases/download/v0.1.0/spin-operator.runtime-class.yaml > ./templates/spin-operator.runtime-class.yaml
 	curl -sL https://github.com/spinkube/spin-operator/releases/download/v0.1.0/spin-operator.shim-executor.yaml > ./templates/spin-operator.shim-executor.yaml
+
+.PHONY: install
+install:
+	helm upgrade --install spinkube-oneclick . --create-namespace -n spinkube
