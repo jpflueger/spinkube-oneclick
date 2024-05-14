@@ -21,6 +21,7 @@ spec:
         helm.sh/chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
     spec:
       restartPolicy: Never
+      serviceAccountName: {{ .Release.Name }}-post-install
       containers:
       - name: post-install-job
         image: "bitnami/kubectl:1.30.0"
@@ -33,8 +34,65 @@ spec:
               kind: SpinAppExecutor
               metadata:
                 name: containerd-shim-spin
+                namespace: default
               spec:
                 createDeployment: true
                 deploymentConfig:
                   runtimeClassName: wasmtime-spin-v2
               EOF
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ .Release.Name }}-post-install
+  labels:
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/managed-by: {{ .Release.Service | quote }}
+    app.kubernetes.io/instance: {{ .Release.Name | quote }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+    helm.sh/chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ .Release.Name }}-post-install-role
+  namespace: default
+  labels:
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/managed-by: {{ .Release.Service | quote }}
+    app.kubernetes.io/instance: {{ .Release.Name | quote }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+    helm.sh/chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+rules:
+- apiGroups:
+  - core.spinoperator.dev
+  resources:
+  - spinappexecutors
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: '{{ .Release.Name }}-post-install-rolebinding'
+  namespace: default
+  labels:
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/managed-by: {{ .Release.Service | quote }}
+    app.kubernetes.io/instance: {{ .Release.Name | quote }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+    helm.sh/chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: '{{ .Release.Name }}-post-install-role'
+subjects:
+- kind: ServiceAccount
+  name: '{{ .Release.Name }}-post-install'
+  namespace: '{{ .Release.Namespace }}'
