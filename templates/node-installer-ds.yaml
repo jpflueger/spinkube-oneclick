@@ -1,3 +1,4 @@
+{{- if .Values.modifyContainerd }}
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
@@ -38,3 +39,4 @@ spec:
       containers:
         - image: k8s.gcr.io/pause:3.1
           name: pause
+{{- end }}
