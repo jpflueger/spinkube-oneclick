@@ -1,2 +1,4 @@
 spin-operator:
   fullnameOverride: spinkube-oneclick
+## Section for spinkube-oneclick chart values
+modifyContainerd: false
